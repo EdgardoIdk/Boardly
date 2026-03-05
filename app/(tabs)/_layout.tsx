@@ -1,35 +1,47 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
-
 import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { MaterialIcons } from '@expo/vector-icons';
+import { Tabs } from 'expo-router';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
         tabBarButton: HapticTab,
-      }}>
+        tabBarStyle: { backgroundColor: '#0d1629', borderTopColor: '#0da2e7' + '33' },
+        tabBarActiveTintColor: '#0da2e7',
+        tabBarInactiveTintColor: '#4a6fa5',
+      }}
+    >
       <Tabs.Screen
-        name="index"
+        name="inicio"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: 'Inicio',
+          tabBarIcon: ({ color }) => <MaterialIcons name="home" size={26} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="viajes"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: 'Viajes',
+          tabBarIcon: ({ color }) => <MaterialIcons name="flight" size={26} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="actividad"
+        options={{
+          title: 'Actividad',
+          tabBarIcon: ({ color }) => <MaterialIcons name="notifications" size={26} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="ajustes"
+        options={{
+          title: 'Ajustes',
+          tabBarIcon: ({ color }) => <MaterialIcons name="settings" size={26} color={color} />,
         }}
       />
     </Tabs>
   );
 }
+

@@ -41,3 +41,10 @@ app-example
 # generated native folders
 /ios
 /android
+
+# VS Code local config (may contain API keys / MCP server secrets)
+.vscode/
+
+# Supabase local state
+supabase/.branches/
+supabase/.temp/

@@ -1,50 +1,134 @@
-# Welcome to your Expo app 👋
+<div align="center">
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+# ✈️ Boardly
 
-## Get started
+### Tu Asistente de Check-in
 
-1. Install dependencies
+**Internal mobile app for travel agency agents to manage clients, upcoming flights, and automated check-in reminders.**
 
-   ```bash
-   npm install
-   ```
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Expo](https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white)
+![React Native](https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
+![NativeWind](https://img.shields.io/badge/NativeWind-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
 
-2. Start the app
+</div>
 
-   ```bash
-   npx expo start
-   ```
+---
 
-In the output, you'll find options to open the app in a
+## 📱 About
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+Boardly is a mobile application built for travel agency agents, providing a centralized hub to manage clients, track upcoming flights, and send automated push notification reminders 24 hours before departure.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+No more missed check-ins. No more manual follow-ups.
 
-## Get a fresh project
+---
 
-When you're ready, run:
+## ⚡ Tech Stack
 
-```bash
-npm run reset-project
+| Layer | Technology |
+|---|---|
+| Framework | Expo SDK ~54 + Expo Router v6 |
+| Language | TypeScript (strict) |
+| Styling | NativeWind v4 (Tailwind CSS for RN) |
+| Backend | Supabase (Auth + PostgreSQL + RLS) |
+| State | Zustand |
+| Notifications | expo-notifications |
+
+---
+
+## 🗂️ Project Structure
+
+```
+app/
+├── index.tsx              # Animated splash screen
+├── (auth)/
+│   ├── login.tsx          # Login screen
+│   └── register.tsx       # Register screen
+└── (tabs)/
+    ├── inicio/            # Dashboard + client management
+    ├── viajes/            # Trips management
+    ├── actividad.tsx      # Activity & notifications log
+    └── ajustes.tsx        # Settings
+
+api/                       # All data-fetching functions (Supabase)
+components/
+└── dashboard/             # Reusable dashboard components
+store/
+└── useAuthStore.ts        # Zustand global auth state
+utils/
+└── supabase.ts            # Supabase client singleton
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-## Learn more
+## 🚀 Getting Started
 
-To learn more about developing your project with Expo, look at the following resources:
+### Prerequisites
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- Node.js 18+
+- Expo CLI
+- A Supabase project
 
-## Join the community
+### Installation
 
-Join our community of developers creating universal apps.
+```bash
+# Clone the repo
+git clone https://github.com/EdgardoIdk/Boardly.git
+cd Boardly
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+# Install dependencies
+npm install
+```
+
+### Environment Variables
+
+Create a `.env.local` file in the root:
+
+```env
+EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
+EXPO_PUBLIC_SUPABASE_KEY=your_supabase_anon_key
+```
+
+### Run
+
+```bash
+npx expo start --clear
+```
+
+---
+
+## 🗄️ Database Schema
+
+```sql
+public.users
+├── id          uuid  (references auth.users)
+├── full_name   text
+├── email       text
+├── role        text  ('agent' | 'admin')
+└── created_at  timestamptz
+```
+
+Row Level Security enabled — agents can only read and update their own data.
+
+---
+
+## 📋 Roadmap
+
+- [x] Splash screen with animation
+- [x] Authentication (login / register)
+- [x] Session management with Supabase
+- [x] Dashboard with stats and upcoming check-ins
+- [x] Settings screen
+- [ ] Client management (add / view / edit)
+- [ ] Trips management
+- [ ] Push notifications 24h before departure
+- [ ] Activity & notification history
+- [ ] Admin role panel
+
+---
+
+<div align="center">
+  <sub>Built with ☕ by <a href="https://github.com/EdgardoIdk">EdgardoIdk</a></sub>
+</div>
+
