@@ -30,7 +30,7 @@ export default function LoginScreen() {
     const error = await login({ email, password });
     setLoading(false);
     if (error) {
-      Alert.alert('Error al iniciar sesión', error.message);
+      Alert.alert('Error al iniciar sesi\u00f3n', error.message);
     } else {
       router.replace('/(tabs)/inicio');
     }
@@ -66,7 +66,7 @@ export default function LoginScreen() {
           <View className="gap-y-3">
             {/* Label email */}
             <Text className="text-[#4a6fa5] text-xs font-semibold uppercase tracking-widest ml-1 mb-0.5">
-              Correo electrónico
+              {'Correo electr\u00f3nico'}
             </Text>
             <View className="rounded-2xl border border-[#0da2e7]/20 bg-[#0d1629] flex-row items-center px-4 mb-2">
               <MaterialIcons name="mail-outline" size={18} color="#4a6fa5" />
@@ -87,7 +87,7 @@ export default function LoginScreen() {
 
             {/* Label contraseña */}
             <Text className="text-[#4a6fa5] text-xs font-semibold uppercase tracking-widest ml-1 mb-0.5">
-              Contraseña
+              {'Contrase\u00f1a'}
             </Text>
             <View className="rounded-2xl border border-[#0da2e7]/20 bg-[#0d1629] flex-row items-center px-4">
               <MaterialIcons name="lock-outline" size={18} color="#4a6fa5" />
@@ -98,6 +98,10 @@ export default function LoginScreen() {
                 placeholder="••••••••"
                 placeholderTextColor="#2a4a6a"
                 secureTextEntry={!showPassword}
+                textContentType="password"
+                autoComplete="password"
+                autoCorrect={false}
+                autoCapitalize="none"
                 returnKeyType="done"
                 onSubmitEditing={handleLogin}
                 className="flex-1 text-white py-4 px-3 text-base"
@@ -116,7 +120,7 @@ export default function LoginScreen() {
 
             {/* ¿Olvidaste tu contraseña? */}
             <TouchableOpacity className="items-end mt-1">
-              <Text className="text-[#0da2e7] text-sm">¿Olvidaste tu contraseña?</Text>
+              <Text className="text-[#0da2e7] text-sm">{'\u00bfOlvidaste tu contrase\u00f1a?'}</Text>
             </TouchableOpacity>
 
             {/* Botón iniciar sesión */}
@@ -130,7 +134,7 @@ export default function LoginScreen() {
                 <ActivityIndicator color="#fff" />
               ) : (
                 <View className="flex-row items-center gap-x-2">
-                  <Text className="text-white font-bold text-base">Iniciar sesión</Text>
+                  <Text className="text-white font-bold text-base">{'Iniciar sesi\u00f3n'}</Text>
                   <MaterialIcons name="arrow-forward" size={18} color="#fff" />
                 </View>
               )}
@@ -140,7 +144,7 @@ export default function LoginScreen() {
 
         {/* Registrarse */}
         <View className="flex-row justify-center items-center pt-6 border-t border-[#0da2e7]/10">
-          <Text className="text-[#4a6fa5]">¿No tienes cuenta? </Text>
+          <Text className="text-[#4a6fa5]">{'\u00bfNo tienes cuenta? '}</Text>
           <TouchableOpacity
             onPress={() => router.push('/(auth)/register')}
             hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}

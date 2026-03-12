@@ -1,13 +1,15 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import * as Notifications from 'expo-notifications';
 import { router, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import "../global.css";
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuthStore } from '@/store/useAuthStore';
+import { registerForPushNotifications } from '@/utils/notifications';
 import { supabase } from '@/utils/supabase';
 
 export const unstable_settings = {
@@ -16,6 +18,8 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const notificationListener = useRef<Notifications.EventSubscription>();
+  const responseListener = useRef<Notifications.EventSubscription>();
 
   useEffect(() => {
     const { setUser, clearUser } = useAuthStore.getState();
@@ -26,6 +30,7 @@ export default function RootLayout() {
           email: session.user.email ?? '',
           fullName: session.user.user_metadata?.full_name ?? session.user.email ?? 'Agente',
         });
+        registerForPushNotifications(session.user.id);
         router.replace('/(tabs)/inicio');
       } else if (event === 'SIGNED_OUT') {
         clearUser();
@@ -33,6 +38,20 @@ export default function RootLayout() {
       }
     });
     return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    responseListener.current = Notifications.addNotificationResponseReceivedListener((response) => {
+      const tripId = response.notification.request.content.data?.tripId;
+      if (tripId) {
+        router.push(`/(tabs)/viajes/${tripId}`);
+      }
+    });
+
+    return () => {
+      if (notificationListener.current) Notifications.removeNotificationSubscription(notificationListener.current);
+      if (responseListener.current) Notifications.removeNotificationSubscription(responseListener.current);
+    };
   }, []);
 
   return (

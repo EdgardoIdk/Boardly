@@ -2,9 +2,10 @@ import { getDashboardStats, getUpcomingCheckIns, type DashboardStatsData, type U
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { DashboardStats } from '@/components/dashboard/DashboardStats';
 import { UpcomingCheckIns } from '@/components/dashboard/UpcomingCheckIns';
+import { UrgentAlert } from '@/components/dashboard/UrgentAlert';
 import { useAuthStore } from '@/store/useAuthStore';
-import { useEffect, useState } from 'react';
-import { ScrollView } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { RefreshControl, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function DashboardScreen() {
@@ -12,10 +13,20 @@ export default function DashboardScreen() {
   const { user } = useAuthStore();
   const [stats, setStats] = useState<DashboardStatsData | null>(null);
   const [checkIns, setCheckIns] = useState<UpcomingCheckIn[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    getDashboardStats().then(setStats);
-    getUpcomingCheckIns().then(setCheckIns);
+  async function load() {
+    const [s, c] = await Promise.all([getDashboardStats(), getUpcomingCheckIns()]);
+    setStats(s);
+    setCheckIns(c);
+  }
+
+  useEffect(() => { load(); }, []);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await load();
+    setRefreshing(false);
   }, []);
 
   return (
@@ -23,8 +34,17 @@ export default function DashboardScreen() {
       className="flex-1 bg-[#0a0f1e]"
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{ paddingTop: insets.top, paddingBottom: insets.bottom + 16 }}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor="#0da2e7"
+          colors={['#0da2e7']}
+        />
+      }
     >
       <DashboardHeader fullName={user?.fullName ?? 'Agente'} />
+      <UrgentAlert items={checkIns} />
       {stats && (
         <DashboardStats
           totalClients={stats.totalClients}

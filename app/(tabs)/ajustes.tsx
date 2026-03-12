@@ -35,7 +35,7 @@ export default function AjustesScreen() {
   const insets = useSafeAreaInsets();
 
   const handleLogout = async () => {
-    Alert.alert('Cerrar sesión', '¿Estás seguro que deseas salir?', [
+    Alert.alert('Cerrar sesi\u00f3n', '\u00bfEst\u00e1s seguro que deseas salir?', [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Salir',
@@ -88,8 +88,8 @@ export default function AjustesScreen() {
         </Text>
         <SettingRow
           icon="lock-reset"
-          label="Cambiar contraseña"
-          description="Actualiza la contraseña de tu cuenta"
+          label={'Cambiar contrase\u00f1a'}
+          description={'Actualiza la contrase\u00f1a de tu cuenta'}
         />
       </View>
 
@@ -105,7 +105,7 @@ export default function AjustesScreen() {
         />
         <SettingRow
           icon="dark-mode"
-          label="Tema de visualización"
+          label={'Tema de visualizaci\u00f3n'}
           description="Actualmente en modo oscuro"
           rightElement={
             <View className="bg-[#0da2e7]/20 px-2.5 py-1 rounded-lg">
@@ -125,8 +125,8 @@ export default function AjustesScreen() {
             <MaterialIcons name="logout" size={20} color="#ef4444" />
           </View>
           <View className="flex-1">
-            <Text className="text-red-400 text-sm font-medium">Cerrar sesión</Text>
-            <Text className="text-[#4a6fa5] text-xs mt-0.5">Salir de tu sesión actual</Text>
+            <Text className="text-red-400 text-sm font-medium">{'Cerrar sesi\u00f3n'}</Text>
+            <Text className="text-[#4a6fa5] text-xs mt-0.5">{'Salir de tu sesi\u00f3n actual'}</Text>
           </View>
         </TouchableOpacity>
       </View>
@@ -137,7 +137,7 @@ export default function AjustesScreen() {
           <MaterialIcons name="dashboard-customize" size={14} color="#4a6fa5" />
           <Text className="text-[#4a6fa5] text-xs font-bold tracking-widest">Boardly</Text>
         </View>
-        <Text className="text-[#4a6fa5] text-xs">Versión 1.0.0 • Build 1</Text>
+        <Text className="text-[#4a6fa5] text-xs">{'Versi\u00f3n 1.0.0 \u2022 Build 1'}</Text>
       </View>
     </ScrollView>
   );

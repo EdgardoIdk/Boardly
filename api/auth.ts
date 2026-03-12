@@ -1,3 +1,4 @@
+import { removePushToken } from '@/utils/notifications';
 import { supabase } from '@/utils/supabase';
 
 export interface AuthError {
@@ -32,6 +33,9 @@ export async function register({ email, password, fullName }: RegisterParams): P
 }
 
 export async function logout(): Promise<AuthError | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) await removePushToken(user.id);
+
   const { error } = await supabase.auth.signOut();
   return error ? { message: error.message } : null;
 }

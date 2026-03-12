@@ -18,7 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 function getPasswordStrength(password: string): { label: string; color: string; width: string } {
   if (password.length === 0) return { label: '', color: 'transparent', width: 'w-0' };
-  if (password.length < 6) return { label: 'Débil', color: '#ef4444', width: 'w-1/4' };
+  if (password.length < 6) return { label: 'D\u00e9bil', color: '#ef4444', width: 'w-1/4' };
   if (password.length < 10 || !/[A-Z]/.test(password) || !/[0-9]/.test(password))
     return { label: 'Seguridad media', color: '#f59e0b', width: 'w-1/2' };
   return { label: 'Fuerte', color: '#22c55e', width: 'w-full' };
@@ -41,9 +41,9 @@ export default function RegisterScreen() {
     const newErrors: Record<string, string> = {};
     if (!fullName.trim()) newErrors.fullName = 'El nombre es requerido';
     if (!email.trim()) newErrors.email = 'El correo es requerido';
-    if (password.length < 6) newErrors.password = 'Mínimo 6 caracteres';
-    if (password !== confirmPassword) newErrors.confirmPassword = 'Las contraseñas no coinciden';
-    if (!acceptedTerms) newErrors.terms = 'Debes aceptar los términos';
+    if (password.length < 6) newErrors.password = 'M\u00ednimo 6 caracteres';
+    if (password !== confirmPassword) newErrors.confirmPassword = 'Las contrase\u00f1as no coinciden';
+    if (!acceptedTerms) newErrors.terms = 'Debes aceptar los t\u00e9rminos';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -58,7 +58,7 @@ export default function RegisterScreen() {
     } else {
       Alert.alert(
         'Cuenta creada',
-        'Revisa tu correo para confirmar tu cuenta y luego inicia sesión.',
+        'Revisa tu correo para confirmar tu cuenta y luego inicia sesi\u00f3n.',
         [{ text: 'OK', onPress: () => router.replace('/(auth)/login') }]
       );
     }
@@ -124,7 +124,7 @@ export default function RegisterScreen() {
                 <TextInput
                   value={email}
                   onChangeText={setEmail}
-                  placeholder="Correo electrónico"
+                  placeholder={'Correo electr\u00f3nico'}
                   placeholderTextColor="#4a6fa5"
                   keyboardType="email-address"
                   autoCapitalize="none"
@@ -143,9 +143,13 @@ export default function RegisterScreen() {
                 <TextInput
                   value={password}
                   onChangeText={setPassword}
-                  placeholder="Contraseña"
+                  placeholder={'Contrase\u00f1a'}
                   placeholderTextColor="#4a6fa5"
                   secureTextEntry={!showPassword}
+                  textContentType="newPassword"
+                  autoComplete="new-password"
+                  autoCorrect={false}
+                  autoCapitalize="none"
                   className="flex-1 text-white py-4 px-3"
                 />
                 <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
@@ -182,9 +186,13 @@ export default function RegisterScreen() {
                 <TextInput
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
-                  placeholder="Confirmar contraseña"
+                  placeholder={'Confirmar contrase\u00f1a'}
                   placeholderTextColor="#4a6fa5"
                   secureTextEntry={!showPassword}
+                  textContentType="newPassword"
+                  autoComplete="new-password"
+                  autoCorrect={false}
+                  autoCapitalize="none"
                   className="flex-1 text-white py-4 px-3"
                 />
               </View>
@@ -210,8 +218,8 @@ export default function RegisterScreen() {
                 </View>
                 <Text className="text-[#4a6fa5] text-sm flex-1">
                   Acepto los{' '}
-                  <Text className="text-[#0da2e7]">Términos de Servicio</Text> y la{' '}
-                  <Text className="text-[#0da2e7]">Política de Privacidad</Text>.
+                  <Text className="text-[#0da2e7]">{'T\u00e9rminos de Servicio'}</Text>{' y la '}
+                  <Text className="text-[#0da2e7]">{'Pol\u00edtica de Privacidad'}</Text>{'.'}
                 </Text>
               </TouchableOpacity>
               {errors.terms && (
@@ -234,9 +242,9 @@ export default function RegisterScreen() {
 
             {/* Ir a login */}
             <View className="flex-row justify-center mt-2">
-              <Text className="text-[#4a6fa5]">¿Ya tienes una cuenta? </Text>
+              <Text className="text-[#4a6fa5]">{'\u00bfYa tienes una cuenta? '}</Text>
               <TouchableOpacity onPress={() => router.replace('/(auth)/login')}>
-                <Text className="text-[#0da2e7] font-medium">Inicia sesión aquí</Text>
+                <Text className="text-[#0da2e7] font-medium">{'Inicia sesi\u00f3n aqu\u00ed'}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -245,7 +253,7 @@ export default function RegisterScreen() {
           <View className="mt-10 flex-row items-center justify-center gap-x-2">
             <MaterialIcons name="lock" size={13} color="#4a6fa5" />
             <Text className="text-[#4a6fa5] text-xs text-center">
-              Boardly utiliza cifrado de extremo a extremo para proteger toda tu información personal.
+              {'Boardly utiliza cifrado de extremo a extremo para proteger toda tu informaci\u00f3n personal.'}
             </Text>
           </View>
         </View>
