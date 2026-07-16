@@ -1,5 +1,6 @@
 import { type Trip } from '@/api/trips';
 import { NotificationBadge } from '@/components/viajes/StatusBadge';
+import { useThemeColors } from '@/hooks/useThemeColors';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Text, TouchableOpacity, View } from 'react-native';
 
@@ -16,53 +17,48 @@ interface FlightCardProps {
 }
 
 export function FlightCard({ trip, onPress }: FlightCardProps) {
+  const colors = useThemeColors();
   return (
     <TouchableOpacity
       onPress={() => onPress(trip.id)}
       activeOpacity={0.75}
-      className="bg-[#0d1629] border border-[#0da2e7]/15 rounded-2xl p-4 mb-3"
+      className="bg-surface-card border border-bd/15 rounded-2xl p-4 mb-3"
     >
-      {/* Row 1: nombre + badge notificación */}
       <View className="flex-row items-center justify-between mb-2">
         <View className="flex-row items-center gap-x-2 flex-1">
-          <View className="w-8 h-8 rounded-xl bg-[#0da2e7]/10 items-center justify-center">
-            <MaterialIcons name="person" size={16} color="#0da2e7" />
+          <View className="w-8 h-8 rounded-xl bg-accent/10 items-center justify-center">
+            <MaterialIcons name="person" size={16} color={colors.accent} />
           </View>
-          <Text className="text-white font-bold text-base flex-shrink" numberOfLines={1}>
+          <Text className="text-primary font-bold text-base flex-shrink" numberOfLines={1}>
             {trip.clientName}
           </Text>
         </View>
-        <NotificationBadge checkInDone={trip.checkInDone} />
+        <NotificationBadge checkInDone={trip.checkInDone} departureAt={trip.departureAt} />
       </View>
 
-      {/* Row 2: fecha + hora + aerolínea */}
       <View className="flex-row items-center gap-x-1.5 mb-3">
-        <MaterialIcons name="schedule" size={13} color="#4a6fa5" />
-        <Text className="text-[#4a6fa5] text-xs">
+        <MaterialIcons name="schedule" size={13} color={colors.textSecondary} />
+        <Text className="text-secondary text-xs">
           {formatDeparture(trip.departureAt)} • {trip.airline}
         </Text>
       </View>
 
-      {/* Row 3: ruta */}
-      <View className="flex-row items-center bg-[#0a0f1e] rounded-xl px-3 py-2 gap-x-2 mb-3">
-        <Text className="text-white font-bold text-sm">{trip.fromCode}</Text>
-        <Text className="text-[#4a6fa5] text-xs">{trip.fromCity}</Text>
-        <MaterialIcons name="flight-takeoff" size={14} color="#0da2e7" />
-        <View className="flex-1 h-px bg-[#0da2e7]/20" />
-        <MaterialIcons name="flight-land" size={14} color="#4a6fa5" />
-        <Text className="text-[#4a6fa5] text-xs">{trip.toCity}</Text>
-        <Text className="text-[#4a6fa5] font-semibold text-sm">{trip.toCode}</Text>
+      <View className="flex-row items-center bg-surface rounded-xl px-3 py-2 gap-x-2 mb-3">
+        <Text className="text-primary font-bold text-sm">{trip.fromCode}</Text>
+        <MaterialIcons name="flight-takeoff" size={14} color={colors.accent} />
+        <View className="flex-1 h-px bg-accent/20" />
+        <MaterialIcons name="flight-land" size={14} color={colors.textSecondary} />
+        <Text className="text-secondary font-semibold text-sm">{trip.toCode}</Text>
       </View>
 
-      {/* Row 4: PNR + detalles */}
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-x-1">
-          <MaterialIcons name="confirmation-number" size={13} color="#4a6fa5" />
-          <Text className="text-[#4a6fa5] text-xs font-mono">{trip.pnr}</Text>
+          <MaterialIcons name="confirmation-number" size={13} color={colors.textSecondary} />
+          <Text className="text-secondary text-xs font-mono">{trip.pnr}</Text>
         </View>
         <View className="flex-row items-center gap-x-0.5">
-          <Text className="text-[#0da2e7] text-xs font-medium">Detalles</Text>
-          <MaterialIcons name="chevron-right" size={14} color="#0da2e7" />
+          <Text className="text-accent text-xs font-medium">Detalles</Text>
+          <MaterialIcons name="chevron-right" size={14} color={colors.accent} />
         </View>
       </View>
     </TouchableOpacity>

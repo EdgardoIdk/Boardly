@@ -1,5 +1,7 @@
 import { getDashboardStats, getUpcomingCheckIns, type DashboardStatsData, type UpcomingCheckIn } from '@/api/dashboard';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
+import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
+import { useThemeColors } from '@/hooks/useThemeColors';
 import { DashboardStats } from '@/components/dashboard/DashboardStats';
 import { UpcomingCheckIns } from '@/components/dashboard/UpcomingCheckIns';
 import { UrgentAlert } from '@/components/dashboard/UrgentAlert';
@@ -10,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
+  const colors = useThemeColors();
   const { user } = useAuthStore();
   const [stats, setStats] = useState<DashboardStatsData | null>(null);
   const [checkIns, setCheckIns] = useState<UpcomingCheckIn[]>([]);
@@ -31,31 +34,36 @@ export default function DashboardScreen() {
 
   return (
     <ScrollView
-      className="flex-1 bg-[#0a0f1e]"
+      className="flex-1 bg-surface"
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{ paddingTop: insets.top, paddingBottom: insets.bottom + 16 }}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
           onRefresh={onRefresh}
-          tintColor="#0da2e7"
+          tintColor={colors.accent}
           colors={['#0da2e7']}
         />
       }
     >
       <DashboardHeader fullName={user?.fullName ?? 'Agente'} />
       <UrgentAlert items={checkIns} />
-      {stats && (
-        <DashboardStats
-          totalClients={stats.totalClients}
-          totalClientsChange={stats.totalClientsChange}
-          upcomingTrips={stats.upcomingTrips}
-          upcomingTripsLabel={stats.upcomingTripsLabel}
-          pendingCheckIns={stats.pendingCheckIns}
-          pendingCheckInsLabel={stats.pendingCheckInsLabel}
-        />
+      
+      {!stats ? (
+        <DashboardSkeleton />
+      ) : (
+        <>
+          <DashboardStats
+            totalClients={stats.totalClients}
+            totalClientsChange={stats.totalClientsChange}
+            upcomingTrips={stats.upcomingTrips}
+            upcomingTripsLabel={stats.upcomingTripsLabel}
+            pendingCheckIns={stats.pendingCheckIns}
+            pendingCheckInsLabel={stats.pendingCheckInsLabel}
+          />
+          {checkIns.length > 0 && <UpcomingCheckIns items={checkIns} />}
+        </>
       )}
-      {checkIns.length > 0 && <UpcomingCheckIns items={checkIns} />}
     </ScrollView>
   );
 }

@@ -1,24 +1,25 @@
+import { useThemeColors } from '@/hooks/useThemeColors';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Text, View } from 'react-native';
 
 interface CheckInBadgeProps {
   checkInDone: boolean;
+  departureAt?: string;
   size?: 'sm' | 'md';
 }
 
-export function NotificationBadge({ checkInDone, size = 'sm' }: CheckInBadgeProps) {
+export function NotificationBadge({ checkInDone, departureAt, size = 'sm' }: CheckInBadgeProps) {
+  const colors = useThemeColors();
   const isLarge = size === 'md';
 
   if (checkInDone) {
     return (
       <View
-        style={{ backgroundColor: 'rgba(34,197,94,0.12)' }}
-        className={`flex-row items-center gap-x-1 rounded-lg ${isLarge ? 'px-3 py-1.5' : 'px-2.5 py-1'}`}
+        className={`flex-row items-center gap-x-1 rounded-lg bg-success/12 ${isLarge ? 'px-3 py-1.5' : 'px-2.5 py-1'}`}
       >
-        <MaterialIcons name="check-circle" size={isLarge ? 14 : 11} color="#22c55e" />
+        <MaterialIcons name="check-circle" size={isLarge ? 14 : 11} color={colors.success} />
         <Text
-          style={{ color: '#22c55e' }}
-          className={`font-bold ${isLarge ? 'text-sm' : 'text-[10px]'}`}
+          className={`text-success font-bold ${isLarge ? 'text-sm' : 'text-[10px]'}`}
         >
           Check-in completado
         </Text>
@@ -26,15 +27,30 @@ export function NotificationBadge({ checkInDone, size = 'sm' }: CheckInBadgeProp
     );
   }
 
+  const isFailed = departureAt ? new Date(departureAt).getTime() <= Date.now() : false;
+
+  if (isFailed) {
+    return (
+      <View
+        className={`flex-row items-center gap-x-1 rounded-lg bg-red-500/10 ${isLarge ? 'px-3 py-1.5' : 'px-2.5 py-1'}`}
+      >
+        <MaterialIcons name="error" size={isLarge ? 14 : 11} color="#ef4444" />
+        <Text
+          className={`text-red-500 font-bold ${isLarge ? 'text-sm' : 'text-[10px]'}`}
+        >
+          Check-in fallido
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <View
-      style={{ backgroundColor: 'rgba(245,158,11,0.10)' }}
-      className={`flex-row items-center gap-x-1 rounded-lg ${isLarge ? 'px-3 py-1.5' : 'px-2.5 py-1'}`}
+      className={`flex-row items-center gap-x-1 rounded-lg bg-warning/10 ${isLarge ? 'px-3 py-1.5' : 'px-2.5 py-1'}`}
     >
-      <MaterialIcons name="assignment-late" size={isLarge ? 14 : 11} color="#f59e0b" />
+      <MaterialIcons name="assignment-late" size={isLarge ? 14 : 11} color={colors.warning} />
       <Text
-        style={{ color: '#f59e0b' }}
-        className={`font-bold ${isLarge ? 'text-sm' : 'text-[10px]'}`}
+        className={`text-warning font-bold ${isLarge ? 'text-sm' : 'text-[10px]'}`}
       >
         Check-in pendiente
       </Text>

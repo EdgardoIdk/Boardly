@@ -3,13 +3,12 @@ import { supabase } from '@/utils/supabase';
 export interface Trip {
   id: string;
   clientName: string;
+  clientPhone: string | null;
   airline: string;
   airlineCheckInUrl: string | null;
   pnr: string;
   fromCode: string;
-  fromCity: string;
   toCode: string;
-  toCity: string;
   /** ISO 8601 */
   departureAt: string;
   /** true cuando el agente ya realizó el check-in en el sitio de la aerolínea */
@@ -21,13 +20,12 @@ export interface Trip {
 export interface CreateTripInput {
   agentId: string;
   clientName: string;
+  clientPhone: string;
   airline: string;
   airlineCheckInUrl?: string | null;
   pnr: string;
   fromCode: string;
-  fromCity: string;
   toCode: string;
-  toCity: string;
   departureAt: string;
   notes: string;
 }
@@ -36,13 +34,12 @@ function fromRow(row: any): Trip {
   return {
     id: row.id,
     clientName: row.client_name,
+    clientPhone: row.client_phone ?? null,
     airline: row.airline,
     airlineCheckInUrl: row.airline_checkin_url ?? null,
     pnr: row.pnr,
     fromCode: row.from_code,
-    fromCity: row.from_city,
     toCode: row.to_code,
-    toCity: row.to_city,
     departureAt: row.departure_at,
     checkInDone: row.check_in_done,
     checkInDoneAt: row.check_in_done_at ?? null,
@@ -92,16 +89,37 @@ export async function createTrip(input: CreateTripInput): Promise<Trip> {
     .insert({
       agent_id: input.agentId,
       client_name: input.clientName,
+      client_phone: input.clientPhone,
       airline: input.airline,
       airline_checkin_url: input.airlineCheckInUrl ?? null,
       pnr: input.pnr,
       from_code: input.fromCode,
-      from_city: input.fromCity,
       to_code: input.toCode,
-      to_city: input.toCity,
       departure_at: input.departureAt,
       notes: input.notes || null,
     })
+    .select()
+    .single();
+  if (error) throw error;
+  return fromRow(data);
+}
+
+export async function updateTrip(tripId: string, input: Partial<CreateTripInput>): Promise<Trip> {
+  const updates: any = {};
+  if (input.clientName !== undefined) updates.client_name = input.clientName;
+  if (input.clientPhone !== undefined) updates.client_phone = input.clientPhone;
+  if (input.airline !== undefined) updates.airline = input.airline;
+  if (input.airlineCheckInUrl !== undefined) updates.airline_checkin_url = input.airlineCheckInUrl;
+  if (input.pnr !== undefined) updates.pnr = input.pnr;
+  if (input.fromCode !== undefined) updates.from_code = input.fromCode;
+  if (input.toCode !== undefined) updates.to_code = input.toCode;
+  if (input.departureAt !== undefined) updates.departure_at = input.departureAt;
+  if (input.notes !== undefined) updates.notes = input.notes || null;
+
+  const { data, error } = await supabase
+    .from('trips')
+    .update(updates)
+    .eq('id', tripId)
     .select()
     .single();
   if (error) throw error;
@@ -117,4 +135,16 @@ export async function markCheckInDone(id: string): Promise<Trip | null> {
     .single();
   if (error) return null;
   return fromRow(data);
+}
+
+export async function searchTrips(query: string): Promise<Trip[]> {
+  const { data, error } = await supabase
+    .from('trips')
+    .select('*')
+    .or(`client_name.ilike.%${query}%,pnr.ilike.%${query}%`)
+    .order('departure_at', { ascending: true })
+    .limit(20);
+
+  if (error) throw error;
+  return (data ?? []).map(fromRow);
 }

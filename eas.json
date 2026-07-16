@@ -1,0 +1,38 @@
+{
+  "cli": {
+    "version": ">= 13.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://crasiuogqajhunihlpiw.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_KEY": "sb_publishable_3-Z8-q-fQeiFQT09TxfnTg_i1Cl-17p"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://crasiuogqajhunihlpiw.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_KEY": "sb_publishable_3-Z8-q-fQeiFQT09TxfnTg_i1Cl-17p"
+      }
+    },
+    "production": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://crasiuogqajhunihlpiw.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_KEY": "sb_publishable_3-Z8-q-fQeiFQT09TxfnTg_i1Cl-17p"
+      }
+    }
+  }
+}

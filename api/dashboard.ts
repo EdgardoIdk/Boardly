@@ -15,6 +15,7 @@ export interface UpcomingCheckIn {
   airline: string;
   /** ISO 8601 */
   departureAt: string;
+  isNotified?: boolean;
 }
 
 export async function getDashboardStats(): Promise<DashboardStatsData> {

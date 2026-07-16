@@ -1,5 +1,6 @@
 import { type UpcomingCheckIn } from '@/api/dashboard';
 import { NotificationBadge } from '@/components/viajes/StatusBadge';
+import { useThemeColors } from '@/hooks/useThemeColors';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Text, TouchableOpacity, View } from 'react-native';
@@ -21,36 +22,35 @@ function timeUntilDeparture(iso: string): string {
 }
 
 function CheckInRow({ item }: { item: UpcomingCheckIn }) {
+  const colors = useThemeColors();
   const isUrgent = new Date(item.departureAt).getTime() - Date.now() < 24 * 60 * 60 * 1000;
 
   return (
     <TouchableOpacity
       onPress={() => router.push(`/(tabs)/viajes/${item.id}`)}
       activeOpacity={0.75}
-      className="flex-row items-center py-3.5 border-b border-[#0da2e7]/08"
+      className="flex-row items-center py-3.5 border-b border-bd/8"
     >
       <View
-        className="w-9 h-9 rounded-xl items-center justify-center mr-3"
-        style={{ backgroundColor: isUrgent ? 'rgba(245,158,11,0.15)' : 'rgba(13,162,231,0.10)' }}
+        className={`w-9 h-9 rounded-xl items-center justify-center mr-3 ${isUrgent ? 'bg-warning/15' : 'bg-accent/10'}`}
       >
         <MaterialIcons
           name="flight"
           size={18}
-          color={isUrgent ? '#f59e0b' : '#0da2e7'}
+          color={isUrgent ? colors.warning : colors.accent}
         />
       </View>
 
       <View className="flex-1">
-        <Text className="text-white text-sm font-semibold">{item.clientName}</Text>
-        <Text className="text-[#4a6fa5] text-xs mt-0.5">
+        <Text className="text-primary text-sm font-semibold">{item.clientName}</Text>
+        <Text className="text-secondary text-xs mt-0.5">
           {item.airline}
         </Text>
       </View>
 
       <View className="items-end gap-y-1">
         <Text
-          style={{ color: isUrgent ? '#f59e0b' : '#4a6fa5' }}
-          className="text-xs font-medium"
+          className={`text-xs font-medium ${isUrgent ? 'text-warning' : 'text-secondary'}`}
         >
           {timeUntilDeparture(item.departureAt)}
         </Text>
@@ -65,22 +65,21 @@ interface UpcomingCheckInsProps {
 }
 
 export function UpcomingCheckIns({ items }: UpcomingCheckInsProps) {
+  const colors = useThemeColors();
   return (
     <View className="mx-5 mt-2">
-      {/* Encabezado de sección */}
       <View className="flex-row items-center justify-between mb-3">
-        <Text className="text-white text-base font-bold">{'Pr\u00f3ximos check-ins'}</Text>
+        <Text className="text-primary text-base font-bold">{'Pr\u00f3ximos check-ins'}</Text>
         <TouchableOpacity
           onPress={() => router.push('/(tabs)/viajes')}
           className="flex-row items-center gap-x-1"
         >
-          <Text className="text-[#0da2e7] text-xs font-medium">Ver todos</Text>
-          <MaterialIcons name="chevron-right" size={16} color="#0da2e7" />
+          <Text className="text-accent text-xs font-medium">Ver todos</Text>
+          <MaterialIcons name="chevron-right" size={16} color={colors.accent} />
         </TouchableOpacity>
       </View>
 
-      {/* Lista */}
-      <View className="rounded-2xl bg-[#0d1629] border border-[#0da2e7]/15 px-4">
+      <View className="rounded-2xl bg-surface-card border border-bd/15 px-4">
         {items.map((item) => (
           <CheckInRow key={item.id} item={item} />
         ))}
@@ -89,10 +88,10 @@ export function UpcomingCheckIns({ items }: UpcomingCheckInsProps) {
       <TouchableOpacity
         onPress={() => router.push('/(tabs)/viajes/nuevo-viaje')}
         activeOpacity={0.85}
-        className="flex-row items-center justify-center mt-3 rounded-2xl border border-dashed border-[#0da2e7]/30 py-3.5 gap-x-2"
+        className="flex-row items-center justify-center mt-3 rounded-2xl border border-dashed border-accent/30 py-3.5 gap-x-2"
       >
-        <MaterialIcons name="add" size={18} color="#0da2e7" />
-        <Text className="text-[#0da2e7] text-sm font-medium">Agregar viaje</Text>
+        <MaterialIcons name="add" size={18} color={colors.accent} />
+        <Text className="text-accent text-sm font-medium">Agregar viaje</Text>
       </TouchableOpacity>
     </View>
   );

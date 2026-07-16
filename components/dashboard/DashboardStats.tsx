@@ -1,3 +1,4 @@
+import { useThemeColors } from '@/hooks/useThemeColors';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Text, View } from 'react-native';
 
@@ -10,15 +11,15 @@ interface StatCardProps {
   subtitleColor?: string;
 }
 
-function StatCard({ label, value, subtitle, icon, iconColor, subtitleColor = '#4a6fa5' }: StatCardProps) {
+function StatCard({ label, value, subtitle, icon, iconColor, subtitleColor }: StatCardProps) {
   return (
-    <View className="rounded-2xl bg-[#0d1629] border border-[#0da2e7]/15 p-5 mb-3">
+    <View className="rounded-2xl bg-surface-card border border-bd/15 p-5 mb-3">
       <View className="flex-row items-start justify-between mb-3">
-        <Text className="text-[#4a6fa5] text-sm font-medium">{label}</Text>
+        <Text className="text-secondary text-sm font-medium">{label}</Text>
         <MaterialIcons name={icon} size={24} color={iconColor} />
       </View>
-      <Text className="text-white text-4xl font-bold mb-1">{value}</Text>
-      <Text style={{ color: subtitleColor }} className="text-sm font-medium">{subtitle}</Text>
+      <Text className="text-primary text-4xl font-bold mb-1">{value}</Text>
+      <Text style={subtitleColor ? { color: subtitleColor } : undefined} className={`text-sm font-medium ${!subtitleColor ? 'text-secondary' : ''}`}>{subtitle}</Text>
     </View>
   );
 }
@@ -40,6 +41,7 @@ export function DashboardStats({
   pendingCheckIns,
   pendingCheckInsLabel,
 }: DashboardStatsProps) {
+  const colors = useThemeColors();
   return (
     <View className="px-5">
       <StatCard
@@ -47,23 +49,23 @@ export function DashboardStats({
         value={totalClients}
         subtitle={totalClientsChange}
         icon="group"
-        iconColor="#0da2e7"
-        subtitleColor="#22c55e"
+        iconColor={colors.accent}
+        subtitleColor={colors.success}
       />
       <StatCard
         label="Upcoming Trips"
         value={upcomingTrips}
         subtitle={upcomingTripsLabel}
         icon="flight-takeoff"
-        iconColor="#0da2e7"
+        iconColor={colors.accent}
       />
       <StatCard
         label="Pending Check-ins"
         value={pendingCheckIns}
         subtitle={pendingCheckInsLabel}
         icon="assignment-late"
-        iconColor="#f59e0b"
-        subtitleColor="#f59e0b"
+        iconColor={colors.warning}
+        subtitleColor={colors.warning}
       />
     </View>
   );

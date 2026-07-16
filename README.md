@@ -120,11 +120,10 @@ Row Level Security enabled — agents can only read and update their own data.
 - [x] Session management with Supabase
 - [x] Dashboard with stats and upcoming check-ins
 - [x] Settings screen
-- [ ] Client management (add / view / edit)
-- [ ] Trips management
-- [ ] Push notifications 24h before departure
-- [ ] Activity & notification history
-- [ ] Admin role panel
+- [x] Trips management (add / view / edit)
+- [x] Push notifications 24h before departure
+- [x] Activity & notification history
+- [x] Admin role panel
 
 ---
 

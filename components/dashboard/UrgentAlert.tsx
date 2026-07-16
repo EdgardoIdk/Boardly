@@ -1,4 +1,5 @@
 import { type UpcomingCheckIn } from '@/api/dashboard';
+import { useThemeColors } from '@/hooks/useThemeColors';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Text, TouchableOpacity, View } from 'react-native';
@@ -8,6 +9,7 @@ interface UrgentAlertProps {
 }
 
 export function UrgentAlert({ items }: UrgentAlertProps) {
+  const colors = useThemeColors();
   const urgent = items.filter(
     (i) =>
       !i.isNotified &&
@@ -26,21 +28,17 @@ export function UrgentAlert({ items }: UrgentAlertProps) {
     <TouchableOpacity
       onPress={() => router.push('/(tabs)/viajes')}
       activeOpacity={0.8}
-      className="mx-5 mt-3 mb-1 rounded-2xl border border-[#f59e0b]/30 px-4 py-3.5"
-      style={{ backgroundColor: 'rgba(245,158,11,0.08)' }}
+      className="mx-5 mt-3 mb-1 rounded-2xl border border-warning/30 bg-warning/8 px-4 py-3.5"
     >
       <View className="flex-row items-center gap-x-3">
-        <View
-          className="w-9 h-9 rounded-xl items-center justify-center flex-shrink-0"
-          style={{ backgroundColor: 'rgba(245,158,11,0.18)' }}
-        >
-          <MaterialIcons name="notification-important" size={18} color="#f59e0b" />
+        <View className="w-9 h-9 rounded-xl items-center justify-center flex-shrink-0 bg-warning/18">
+          <MaterialIcons name="notification-important" size={18} color={colors.warning} />
         </View>
         <View className="flex-1">
-          <Text className="text-[#f59e0b] text-sm font-bold">{'\u00a1Acci\u00f3n requerida!'}</Text>
-          <Text className="text-[#f59e0b]/80 text-xs mt-0.5">{label}</Text>
+          <Text className="text-warning text-sm font-bold">{'\u00a1Acci\u00f3n requerida!'}</Text>
+          <Text className="text-warning/80 text-xs mt-0.5">{label}</Text>
         </View>
-        <MaterialIcons name="chevron-right" size={18} color="#f59e0b" />
+        <MaterialIcons name="chevron-right" size={18} color={colors.warning} />
       </View>
     </TouchableOpacity>
   );

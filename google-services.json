@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "859537789826",
+    "project_id": "boardly-c66dd",
+    "storage_bucket": "boardly-c66dd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:859537789826:android:ca68d12f81d802dd56759b",
+        "android_client_info": {
+          "package_name": "com.edgardo_idk.Boardly"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDRsfrfxBRYPGzN54JzOy0f3NC3zfl4_sQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

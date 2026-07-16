@@ -1,6 +1,7 @@
 import { getTrips, type Trip } from '@/api/trips';
 import { FlightCard } from '@/components/viajes/FlightCard';
 import { TripsHeader } from '@/components/viajes/TripsHeader';
+import { useThemeColors } from '@/hooks/useThemeColors';
 import { useTripsStore } from '@/store/useTripsStore';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -10,11 +11,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ViajesScreen() {
   const insets = useSafeAreaInsets();
+  const colors = useThemeColors();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
+  const [hasMore, setHasMore] = useState(false);
   const pageRef = useRef(0);
   const version = useTripsStore((s) => s.version);
 
@@ -37,11 +39,14 @@ export default function ViajesScreen() {
   }, [loadPage]);
 
   const onEndReached = useCallback(async () => {
-    if (loadingMore || !hasMore) return;
+    if (loading || loadingMore || !hasMore) return;
     setLoadingMore(true);
-    await loadPage(pageRef.current + 1, true);
-    setLoadingMore(false);
-  }, [loadingMore, hasMore, loadPage]);
+    try {
+      await loadPage(pageRef.current + 1, true);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loading, loadingMore, hasMore, loadPage]);
 
   const handleCardPress = (id: string) => {
     router.push(`/(tabs)/viajes/${id}`);
@@ -60,14 +65,14 @@ export default function ViajesScreen() {
 
   const ListHeader = (
     <>
-      <TripsHeader onSearchPress={() => {}} />
+      <TripsHeader onSearchPress={() => router.push('/(tabs)/viajes/buscar')} />
       <View className="mx-5 mt-4 mb-4 flex-row items-center justify-between">
-        <Text className="text-white font-bold text-base">Todos los viajes</Text>
+        <Text className="text-primary font-bold text-base">Todos los viajes</Text>
         <View className="flex-row items-center gap-x-2">
           {!loading && pendingCount > 0 && (
-            <View className="flex-row items-center gap-x-1.5 bg-[#f59e0b]/10 border border-[#f59e0b]/25 rounded-xl px-3 py-1">
-              <MaterialIcons name="notifications-none" size={12} color="#f59e0b" />
-              <Text className="text-[#f59e0b] text-[10px] font-bold">
+            <View className="flex-row items-center gap-x-1.5 bg-warning/10 border border-warning/25 rounded-xl px-3 py-1">
+              <MaterialIcons name="notifications-none" size={12} color={colors.warning} />
+              <Text className="text-warning text-[10px] font-bold">
                 {pendingCount} sin check-in
               </Text>
             </View>
@@ -75,9 +80,9 @@ export default function ViajesScreen() {
           <TouchableOpacity
             onPress={() => router.push('/(tabs)/viajes/nuevo-viaje')}
             activeOpacity={0.8}
-            className="w-8 h-8 rounded-xl bg-[#0da2e7]/15 border border-[#0da2e7]/30 items-center justify-center"
+            className="w-8 h-8 rounded-xl bg-accent/15 border border-accent/30 items-center justify-center"
           >
-            <MaterialIcons name="add" size={20} color="#0da2e7" />
+            <MaterialIcons name="add" size={20} color={colors.accent} />
           </TouchableOpacity>
         </View>
       </View>
@@ -86,19 +91,19 @@ export default function ViajesScreen() {
 
   const ListEmpty = loading ? (
     <View className="items-center justify-center py-16">
-      <ActivityIndicator size="large" color="#0da2e7" />
-      <Text className="text-[#4a6fa5] text-sm mt-3">Cargando viajes…</Text>
+      <ActivityIndicator size="large" color={colors.accent} />
+      <Text className="text-secondary text-sm mt-3">Cargando viajes…</Text>
     </View>
   ) : (
     <View className="items-center justify-center py-16">
-      <MaterialIcons name="flight-takeoff" size={40} color="#4a6fa5" />
-      <Text className="text-[#4a6fa5] text-sm mt-3">No hay viajes registrados</Text>
+      <MaterialIcons name="flight-takeoff" size={40} color={colors.textSecondary} />
+      <Text className="text-secondary text-sm mt-3">No hay viajes registrados</Text>
     </View>
   );
 
   const ListFooter = loadingMore ? (
     <View className="items-center py-6">
-      <ActivityIndicator size="small" color="#0da2e7" />
+      <ActivityIndicator size="small" color={colors.accent} />
     </View>
   ) : null;
 
@@ -122,11 +127,11 @@ export default function ViajesScreen() {
         <RefreshControl
           refreshing={refreshing}
           onRefresh={onRefresh}
-          tintColor="#0da2e7"
-          colors={['#0da2e7']}
+          tintColor={colors.accent}
+          colors={[colors.accent]}
         />
       }
-      className="flex-1 bg-[#0a0f1e]"
+      className="flex-1 bg-surface"
     />
   );
 }

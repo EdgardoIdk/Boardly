@@ -61,3 +61,15 @@ export async function resetPassword(email: string): Promise<AuthError | null> {
   const { error } = await supabase.auth.resetPasswordForEmail(email);
   return error ? { message: error.message } : null;
 }
+
+export async function updateProfile(fullName: string): Promise<AuthError | null> {
+  const { error } = await supabase.auth.updateUser({
+    data: { full_name: fullName.trim() },
+  });
+  return error ? { message: error.message } : null;
+}
+
+export async function updatePassword(newPassword: string): Promise<AuthError | null> {
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  return error ? { message: error.message } : null;
+}

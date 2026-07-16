@@ -1,9 +1,11 @@
+import { getAirlineByName } from '@/api/airlines';
 import { getTripById, markCheckInDone, type Trip } from '@/api/trips';
 import { NotificationBadge } from '@/components/viajes/StatusBadge';
+import { useThemeColors } from '@/hooks/useThemeColors';
 import { useTripsStore } from '@/store/useTripsStore';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
     ActivityIndicator,
     Linking,
@@ -11,32 +13,10 @@ import {
     Text,
     TouchableOpacity,
     View,
+    Modal,
 } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-// URLs de check-in por aerolínea (fallback cuando el viaje no tiene URL propia)
-const AIRLINE_CHECKIN_URLS: Record<string, string> = {
-  'iberia':          'https://www.iberia.com/es/check-in/',
-  'ita airways':     'https://checkin.ita-airways.com/',
-  'alitalia':        'https://checkin.ita-airways.com/',
-  'cathay pacific':  'https://www.cathaypacific.com/cx/en_US/manage-booking/check-in.html',
-  'british airways': 'https://www.britishairways.com/travel/managebooking/public/en_gb',
-  'aeromexico':      'https://checkin.aeromexico.com/',
-  'american airlines': 'https://www.aa.com/checkin',
-  'delta':           'https://www.delta.com/us/en/check-in/overview',
-  'united':          'https://www.united.com/en/us/checkin',
-  'lufthansa':       'https://www.lufthansa.com/xx/en/online-check-in',
-  'air france':      'https://wwws.airfrance.com/en/online-check-in',
-  'klm':             'https://www.klm.com/travel/en_en/prepare_for_travel/on_the_day_of_travel/check_in_online/index.htm',
-  'emirates':        'https://www.emirates.com/english/manage-booking/online-check-in/',
-  'ryanair':         'https://www.ryanair.com/gb/en/trip/check-in',
-  'volaris':         'https://www.volaris.com/en/check-in',
-};
-
-function getCheckInUrl(airline: string, customUrl?: string | null): string {
-  if (customUrl) return customUrl;
-  return AIRLINE_CHECKIN_URLS[airline.toLowerCase()] ?? `https://www.google.com/search?q=${encodeURIComponent(airline + ' online check-in')}`;
-}
 
 function formatDateTime(iso: string) {
   const d = new Date(iso);
@@ -54,21 +34,61 @@ function daysUntil(iso: string): number {
 export default function ViajeDetalleScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
+  const colors = useThemeColors();
   const [trip, setTrip] = useState<Trip | null>(null);
+  const [checkInUrl, setCheckInUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [contactModalVisible, setContactModalVisible] = useState(false);
+
+  function handleCall() {
+    if (!trip?.clientPhone) return;
+    const phone = trip.clientPhone.replace(/\s+/g, '');
+    Linking.openURL(`tel:${phone}`);
+    setContactModalVisible(false);
+  }
+
+  function handleWhatsApp() {
+    if (!trip?.clientPhone) return;
+    // For WhatsApp we usually just remove spaces and extra characters; keep digits and plus sign
+    const phone = trip.clientPhone.replace(/[^\d+]/g, '');
+    Linking.openURL(`https://wa.me/${phone}`);
+    setContactModalVisible(false);
+  }
+
+  async function handleCopyPhone() {
+    if (!trip?.clientPhone) return;
+    await Clipboard.setStringAsync(trip.clientPhone);
+    setContactModalVisible(false);
+  }
+
+  const resolveCheckInUrl = useCallback(async (t: Trip) => {
+    if (t.airlineCheckInUrl) {
+      setCheckInUrl(t.airlineCheckInUrl);
+      return;
+    }
+    const airline = await getAirlineByName(t.airline);
+    if (airline?.checkInUrl) {
+      setCheckInUrl(airline.checkInUrl);
+    } else {
+      setCheckInUrl(`https://www.google.com/search?q=${encodeURIComponent(t.airline + ' online check-in')}`);
+    }
+  }, []);
 
   useEffect(() => {
     getTripById(id)
-      .then(setTrip)
+      .then((t) => {
+        setTrip(t);
+        if (t) resolveCheckInUrl(t);
+      })
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, resolveCheckInUrl]);
 
   if (loading) {
     return (
       <View
         style={{ paddingTop: insets.top }}
-        className="flex-1 bg-[#0a0f1e] items-center justify-center"
+        className="flex-1 bg-surface items-center justify-center"
       >
         <ActivityIndicator size="large" color="#0da2e7" />
       </View>
@@ -79,10 +99,10 @@ export default function ViajeDetalleScreen() {
     return (
       <View
         style={{ paddingTop: insets.top }}
-        className="flex-1 bg-[#0a0f1e] items-center justify-center"
+        className="flex-1 bg-surface items-center justify-center"
       >
-        <MaterialIcons name="flight-takeoff" size={40} color="#4a6fa5" />
-        <Text className="text-[#4a6fa5] text-sm mt-3">Viaje no encontrado</Text>
+        <MaterialIcons name="flight-takeoff" size={40} color={colors.textSecondary} />
+        <Text className="text-secondary text-sm mt-3">Viaje no encontrado</Text>
       </View>
     );
   }
@@ -91,11 +111,12 @@ export default function ViajeDetalleScreen() {
   const days = daysUntil(trip.departureAt);
   const hoursUntil = (new Date(trip.departureAt).getTime() - Date.now()) / (1000 * 60 * 60);
   const checkInAvailable = hoursUntil <= 24 && hoursUntil > 0;
+  const hasDeparted = hoursUntil <= 0;
   const countdownLabel =
-    days < 0  ? 'Ya sali\u00f3' :
+    days < 0  ? 'Ya salió' :
     days === 0 ? 'Hoy' :
-    days === 1 ? 'Ma\u00f1ana' :
-    `En ${days} d\u00edas`;
+    days === 1 ? 'Mañana' :
+    `En ${days} días`;
 
   async function handleCheckInDone() {
     if (!trip || saving || trip.checkInDone) return;
@@ -110,7 +131,7 @@ export default function ViajeDetalleScreen() {
 
   return (
     <ScrollView
-      className="flex-1 bg-[#0a0f1e]"
+      className="flex-1 bg-surface"
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{ paddingTop: insets.top, paddingBottom: insets.bottom + 24 }}
     >
@@ -120,68 +141,66 @@ export default function ViajeDetalleScreen() {
         className="flex-row items-center gap-x-1 px-4 pt-2 pb-1"
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       >
-        <MaterialIcons name="arrow-back" size={22} color="#0da2e7" />
-        <Text className="text-[#0da2e7] text-sm font-medium">Viajes</Text>
+        <MaterialIcons name="arrow-back" size={22} color={colors.accent} />
+        <Text className="text-accent text-sm font-medium">Viajes</Text>
       </TouchableOpacity>
 
       {/* Header: cliente + badge */}
-      <View className="mx-5 mt-3 bg-[#0d1629] border border-[#0da2e7]/15 rounded-2xl p-5">
+      <View className="mx-5 mt-3 bg-surface-card border border-bd/15 rounded-2xl p-5">
         <View className="flex-row items-center justify-between mb-4">
-          <Text className="text-[#4a6fa5] text-xs font-medium tracking-widest uppercase">
+          <Text className="text-secondary text-xs font-medium tracking-widest uppercase">
             Detalle del Viaje
           </Text>
-          <NotificationBadge checkInDone={trip.checkInDone} size="md" />
+          <NotificationBadge checkInDone={trip.checkInDone} departureAt={trip.departureAt} size="md" />
         </View>
 
         <View className="flex-row items-center gap-x-4">
-          <View className="w-14 h-14 rounded-2xl bg-[#0da2e7]/15 border border-[#0da2e7]/25 items-center justify-center">
-            <MaterialIcons name="person" size={26} color="#0da2e7" />
+          <View className="w-14 h-14 rounded-2xl bg-accent/15 border border-bd/25 items-center justify-center">
+            <MaterialIcons name="person" size={26} color={colors.accent} />
           </View>
           <View className="flex-1">
-            <Text className="text-white text-xl font-bold">{trip.clientName}</Text>
+            <Text className="text-primary text-xl font-bold">{trip.clientName}</Text>
             <View className="flex-row items-center gap-x-2 mt-1">
-              <MaterialIcons name="confirmation-number" size={13} color="#4a6fa5" />
-              <Text className="text-[#4a6fa5] text-xs font-mono">{trip.pnr}</Text>
+              <MaterialIcons name="confirmation-number" size={13} color={colors.textSecondary} />
+              <Text className="text-secondary text-xs font-mono">{trip.pnr}</Text>
             </View>
           </View>
         </View>
       </View>
 
       {/* Ruta */}
-      <View className="mx-5 mt-4 bg-[#0d1629] border border-[#0da2e7]/15 rounded-2xl p-5">
-        <Text className="text-[#4a6fa5] text-xs font-medium tracking-widest uppercase mb-4">
+      <View className="mx-5 mt-4 bg-surface-card border border-bd/15 rounded-2xl p-5">
+        <Text className="text-secondary text-xs font-medium tracking-widest uppercase mb-4">
           Itinerario
         </Text>
 
         <View className="flex-row items-center justify-between mb-5">
           <View className="items-center flex-1">
-            <Text className="text-white text-3xl font-bold">{trip.fromCode}</Text>
-            <Text className="text-[#4a6fa5] text-xs mt-1 text-center">{trip.fromCity}</Text>
+            <Text className="text-primary text-3xl font-bold">{trip.fromCode}</Text>
           </View>
           <View className="items-center px-3">
-            <MaterialIcons name="flight-takeoff" size={22} color="#0da2e7" />
+            <MaterialIcons name="flight-takeoff" size={22} color={colors.accent} />
             <View className="flex-row items-center mt-2 gap-x-1">
-              <View className="w-10 h-px bg-[#0da2e7]/30" />
-              <View className="w-2 h-2 rounded-full bg-[#0da2e7]/50" />
-              <View className="w-10 h-px bg-[#0da2e7]/30" />
+              <View className="w-10 h-px bg-accent/30" />
+              <View className="w-2 h-2 rounded-full bg-accent/50" />
+              <View className="w-10 h-px bg-accent/30" />
             </View>
-            <Text className="text-[#4a6fa5] text-[10px] mt-1">{trip.airline}</Text>
+            <Text className="text-secondary text-[10px] mt-1">{trip.airline}</Text>
           </View>
           <View className="items-center flex-1">
-            <Text className="text-[#4a6fa5] text-3xl font-bold">{trip.toCode}</Text>
-            <Text className="text-[#4a6fa5] text-xs mt-1 text-center">{trip.toCity}</Text>
+            <Text className="text-secondary text-3xl font-bold">{trip.toCode}</Text>
           </View>
         </View>
 
         {/* Fecha + hora + countdown */}
         <View className="flex-row gap-x-3">
-          <View className="flex-1 bg-[#0a0f1e] rounded-xl p-3 border border-[#0da2e7]/10">
-            <Text className="text-[#4a6fa5] text-[10px] uppercase tracking-wider mb-1">Fecha de salida</Text>
-            <Text className="text-white font-semibold text-sm">{date}</Text>
+          <View className="flex-1 bg-surface rounded-xl p-3 border border-bd/10">
+            <Text className="text-secondary text-[10px] uppercase tracking-wider mb-1">Fecha de salida</Text>
+            <Text className="text-primary font-semibold text-sm">{date}</Text>
           </View>
-          <View className="bg-[#0a0f1e] rounded-xl p-3 border border-[#0da2e7]/10 items-center justify-center px-4">
-            <Text className="text-[#4a6fa5] text-[10px] uppercase tracking-wider mb-1">Hora</Text>
-            <Text className="text-white font-bold text-lg">{time}</Text>
+          <View className="bg-surface rounded-xl p-3 border border-bd/10 items-center justify-center px-4">
+            <Text className="text-secondary text-[10px] uppercase tracking-wider mb-1">Hora</Text>
+            <Text className="text-primary font-bold text-lg">{time}</Text>
           </View>
         </View>
 
@@ -204,29 +223,31 @@ export default function ViajeDetalleScreen() {
             {countdownLabel}
           </Text>
           {days > 1 && (
-            <Text className="text-[#4a6fa5] text-xs ml-1">{'— el agente recibir\u00e1 un recordatorio 24h antes del vuelo'}</Text>
+            <Text className="text-secondary text-xs ml-1 flex-1">
+              {'— el agente recibirá un recordatorio 24h antes del vuelo'}
+            </Text>
           )}
         </View>
       </View>
 
       {/* Notas del agente */}
-      <View className="mx-5 mt-4 bg-[#0d1629] border border-[#0da2e7]/15 rounded-2xl p-5">
-        <Text className="text-[#4a6fa5] text-xs font-medium tracking-widest uppercase mb-3">
+      <View className="mx-5 mt-4 bg-surface-card border border-bd/15 rounded-2xl p-5">
+        <Text className="text-secondary text-xs font-medium tracking-widest uppercase mb-3">
           Notas del agente
         </Text>
         {trip.notes ? (
           <View className="flex-row gap-x-3">
-            <MaterialIcons name="notes" size={16} color="#4a6fa5" style={{ marginTop: 2 }} />
-            <Text className="text-white text-sm leading-5 flex-1">{trip.notes}</Text>
+            <MaterialIcons name="notes" size={16} color={colors.textSecondary} style={{ marginTop: 2 }} />
+            <Text className="text-primary text-sm leading-5 flex-1">{trip.notes}</Text>
           </View>
         ) : (
-          <Text className="text-[#4a6fa5]/60 text-sm italic">Sin notas registradas.</Text>
+          <Text className="text-secondary/60 text-sm italic">Sin notas registradas.</Text>
         )}
       </View>
 
       {/* Estado del Check-in */}
-      <View className="mx-5 mt-4 bg-[#0d1629] border border-[#0da2e7]/15 rounded-2xl p-5">
-        <Text className="text-[#4a6fa5] text-xs font-medium tracking-widest uppercase mb-4">
+      <View className="mx-5 mt-4 bg-surface-card border border-bd/15 rounded-2xl p-5">
+        <Text className="text-secondary text-xs font-medium tracking-widest uppercase mb-4">
           Estado del Check-in
         </Text>
 
@@ -249,7 +270,7 @@ export default function ViajeDetalleScreen() {
           <MaterialIcons
             name={trip.checkInDone ? 'task-alt' : checkInAvailable ? 'lock-open' : 'lock'}
             size={20}
-            color={trip.checkInDone ? '#22c55e' : checkInAvailable ? '#0da2e7' : '#4a6fa5'}
+            color={trip.checkInDone ? colors.success : checkInAvailable ? colors.accent : colors.textSecondary}
           />
           <View className="flex-1">
             <Text
@@ -262,13 +283,15 @@ export default function ViajeDetalleScreen() {
                 ? 'Check-in disponible'
                 : 'Check-in bloqueado'}
             </Text>
-            <Text className="text-[#4a6fa5] text-xs mt-0.5">
+            <Text className="text-secondary text-xs mt-0.5">
               {trip.checkInDone && trip.checkInDoneAt
                 ? `Realizado el ${new Date(trip.checkInDoneAt).toLocaleDateString('es', { day: '2-digit', month: 'short' })} · ${new Date(trip.checkInDoneAt).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })}`
                 : checkInAvailable
-                ? 'El check-in est\u00e1 abierto \u2014 real\u00edzalo en el sitio de la aerol\u00ednea'
+                ? 'El check-in está abierto — realízalo en el sitio de la aerolínea'
+                : hoursUntil <= 0
+                ? 'El vuelo ya ocurrió o el tiempo de check-in cerró'
                 : hoursUntil > 48
-                ? `Disponible en aprox. ${days} d\u00edas`
+                ? `Disponible en aprox. ${days} días`
                 : `Disponible en aprox. ${Math.round(hoursUntil)}h`}
             </Text>
           </View>
@@ -311,21 +334,31 @@ export default function ViajeDetalleScreen() {
       {/* Acciones */}
       <View className="mx-5 mt-4 flex-row gap-x-3">
         <TouchableOpacity
-          activeOpacity={0.75}
-          className="flex-1 flex-row items-center justify-center gap-x-2 bg-[#0da2e7]/10 border border-[#0da2e7]/25 rounded-xl py-3.5"
+          onPress={hasDeparted ? undefined : () => router.push({ pathname: '/viajes/nuevo-viaje', params: { editId: trip.id } })}
+          activeOpacity={hasDeparted ? 1 : 0.75}
+          className={`flex-1 flex-row items-center justify-center gap-x-2 rounded-xl py-3.5 ${
+            hasDeparted
+              ? 'bg-surface-card border border-secondary/30'
+              : 'bg-accent/10 border border-bd/25'
+          }`}
         >
-          <MaterialIcons name="edit" size={16} color="#0da2e7" />
-          <Text className="text-[#0da2e7] text-sm font-semibold">Editar</Text>
+          <MaterialIcons name="edit" size={16} color={hasDeparted ? '#4a6fa5' : colors.accent} />
+          <Text
+            style={{ color: hasDeparted ? '#4a6fa5' : colors.accent }}
+            className="text-sm font-semibold"
+          >
+            Editar
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => Linking.openURL(getCheckInUrl(trip.airline, trip.airlineCheckInUrl))}
+          onPress={() => checkInUrl && Linking.openURL(checkInUrl)}
           activeOpacity={0.75}
           className={`flex-1 flex-row items-center justify-center gap-x-2 rounded-xl py-3.5 ${
             trip.checkInDone
-              ? 'bg-[#22c55e]/10 border border-[#22c55e]/25'
+              ? 'bg-success/10 border border-success/25'
               : checkInAvailable
-              ? 'bg-[#0da2e7] border border-[#0da2e7]'
-              : 'bg-[#0d1629] border border-[#4a6fa5]/30'
+              ? 'bg-accent border border-bd'
+              : 'bg-surface-card border border-secondary/30'
           }`}
         >
           <MaterialIcons
@@ -341,7 +374,91 @@ export default function ViajeDetalleScreen() {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Contactar Cliente */}
+      {trip.clientPhone ? (
+        <TouchableOpacity
+          onPress={() => setContactModalVisible(true)}
+          activeOpacity={0.75}
+          className="mx-5 mt-3 flex-row items-center justify-center gap-x-2 bg-[#25D366]/10 border border-[#25D366]/25 rounded-xl py-3.5"
+        >
+          <MaterialIcons name="perm-contact-calendar" size={16} color="#25D366" />
+          <Text style={{ color: '#25D366' }} className="text-sm font-semibold">Contactar al cliente</Text>
+        </TouchableOpacity>
+      ) : null}
+
+      {/* Prechequeo Migratorio Honduras */}
+      <TouchableOpacity
+        onPress={() => Linking.openURL('https://sistemas.aduanas.gob.hn/Pech/#/plataforma/otra_gestiones/formularioDJRV')}
+        activeOpacity={0.75}
+        className="mx-5 mt-3 flex-row items-center justify-center gap-x-2 bg-warning/10 border border-warning/25 rounded-xl py-3.5"
+      >
+        <MaterialIcons name="assignment" size={16} color="#f59e0b" />
+        <Text style={{ color: '#f59e0b' }} className="text-sm font-semibold">
+          {'Declaración Jurada / Prechequeo Migratorio'}
+        </Text>
+        <MaterialIcons name="open-in-new" size={12} color="#f59e0b" />
+      </TouchableOpacity>
+
+      {/* Contact Modal */}
+      <Modal
+        visible={contactModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setContactModalVisible(false)}
+      >
+        <View className="flex-1 bg-black/60 justify-center items-center px-6">
+          <View className="bg-surface-card border border-bd/15 rounded-2xl w-full p-5 shadow-lg">
+            <Text className="text-primary text-xl font-bold mb-1">Contactar cliente</Text>
+            <Text className="text-secondary text-sm mb-5">
+              Elige un método de contacto para {trip.clientName}
+            </Text>
+
+            <TouchableOpacity 
+              onPress={handleCall}
+              activeOpacity={0.7}
+              className="flex-row items-center gap-x-3 bg-surface border border-bd/10 p-4 rounded-xl mb-3"
+            >
+              <MaterialIcons name="phone" size={24} color={colors.accent} />
+              <View className="flex-1">
+                <Text className="text-primary font-medium text-base">Llamada telefónica</Text>
+                <Text className="text-secondary text-xs mt-0.5">{trip.clientPhone}</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              onPress={handleWhatsApp}
+              activeOpacity={0.7}
+              className="flex-row items-center gap-x-3 bg-[#25D366]/10 border border-[#25D366]/20 p-4 rounded-xl mb-3"
+            >
+              <MaterialIcons name="chat" size={24} color="#25D366" />
+              <View className="flex-1">
+                <Text style={{ color: '#25D366' }} className="font-medium text-base">WhatsApp</Text>
+                <Text className="text-[#25D366]/80 text-xs mt-0.5">{trip.clientPhone}</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              onPress={handleCopyPhone}
+              activeOpacity={0.7}
+              className="flex-row items-center gap-x-3 bg-surface border border-bd/10 p-4 rounded-xl mb-5"
+            >
+              <MaterialIcons name="content-copy" size={24} color={colors.textSecondary} />
+              <View className="flex-1">
+                <Text className="text-primary font-medium text-base">Copiar número</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              onPress={() => setContactModalVisible(false)}
+              activeOpacity={0.7}
+              className="w-full py-3.5 bg-surface border border-bd/10 rounded-xl items-center"
+            >
+              <Text className="text-primary font-semibold text-sm">Cancelar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
-
